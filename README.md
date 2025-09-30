@@ -42,3 +42,13 @@ This TradingView indicator detects potential **LONG** (`L`, `L+`) and **RISK** (
 - Extra *Near-High + RSI* combo adds R signals without filtering originals  
 
 ---
+
+## Changelog
+- Please refer to release notes
+
+---
+
+### Inspired by
+- 通达信 "破坎红 (买入)" 与 "过坎黑 (风险)" 组合指标
+
+---
