@@ -1,6 +1,6 @@
 // @version=6
 // -----------------------------------------------------------------------------
-//  LONG / RISK Signals with Adaptive MA Filter - v5.1.0
+//  LONG / RISK Signals with Adaptive MA Filter - v5.1.2
 //  - VWAP / Volume / MACD confirmations
 //  - Separate K–D minimum spread for L/L+ vs R/R+
 //  - Optional ATR / ADX market-condition filters (classic lengths hard-coded)
@@ -10,7 +10,7 @@
 //  - Signals: L / L+ / R / R+
 //  Author: Anthony C.
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals - v5.1.0 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals - v5.1.2 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
@@ -124,14 +124,16 @@ else
     (breakUpSignal[1] and bearishBar and priceAboveMA)
 
 // === EXTRA R (adds signals; does NOT filter others) ===
-recentHigh    = ta.highest(high, topLookback)
-nearHigh      = high >= recentHigh * (1 - topTolerancePct / 100.0)
-rsiNow        = ta.rsi(close, rsiLen)
-rsiPast       = rsiNow[topLookback]
-priceHigherHi = high > high[topLookback]
-rsiLowerHi    = rsiNow < nz(rsiPast, rsiNow)
-rsiAbove60    = rsiNow > 60
-extraR_combo  = enableTopRSICombo and nearHigh and bearishBar and priceAboveMA and priceHigherHi and rsiLowerHi and rsiAbove60
+// Near-High within tolerance AND bearish RSI divergence vs topLookback bars ago
+recentHigh     = ta.highest(high, topLookback)
+nearHigh       = high >= recentHigh * (1 - topTolerancePct / 100.0)
+rsiNow         = ta.rsi(close, rsiLen)
+rsiPast        = rsiNow[topLookback]
+histHigh       = high[topLookback]                         // may be na on early bars
+priceHigherHi  = not na(histHigh) and high > histHigh      // <- NA-safety added
+rsiLowerHi     = rsiNow < nz(rsiPast, rsiNow)              // already NA-protected
+rsiAbove60     = rsiNow > 60
+extraR_combo   = enableTopRSICombo and nearHigh and bearishBar and priceAboveMA and priceHigherHi and rsiLowerHi and rsiAbove60
 
 // Final R base
 R_base = R_base_raw or extraR_combo
@@ -169,11 +171,11 @@ marketOK = atrOK and adxOK
 // === Apply market filters ===
 applyFilters(sig) => applyToBaseSignals ? (sig and marketOK) : sig
 
-// L+/R+ with filters; slope filter仍只作用於加強訊號
+// L+/R+ with filters; slope filter still only affects enhanced signals
 L_plus      = applyFilters(L_base and aboveVWAP and volOK and bullMACD and (not enableSlopeFilter or maSlopeUp))
 R_plus      = applyFilters(R_base and belowVWAP and volOK and bearMACD and (not enableSlopeFilter or maSlopeDown))
 
-// 若選擇也過濾基礎訊號，這裡會套用；否則維持原始
+// Optionally also filter base signals
 L_baseFinal = applyToBaseSignals ? (L_base and marketOK) : L_base
 R_baseFinal = applyToBaseSignals ? (R_base and marketOK) : R_base
 
