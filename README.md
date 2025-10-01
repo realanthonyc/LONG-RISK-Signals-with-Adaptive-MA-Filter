@@ -1,8 +1,8 @@
-# LONG-RISK-Signals-with-Adaptive-MA-Filter
+# LONG / RISK Signals with Adaptive MA Filter for TradingView
 
-LONG / RISK Signals with Adaptive MA Filter for **TradingView** (Pine v6)
+**Author:** Anthony C. https://x.com/anthonycxc
 
-**Author:** Anthony C.
+Pine Script® v6
 
 ---
 
@@ -18,6 +18,7 @@ This TradingView indicator detects potential **LONG** (`L`, `L+`) and **RISK** (
 - Optional MA Slope Filter for L+ / R+  
 - Optional extra R via *Near-High + RSI Bearish* combo  
 - Anti-flicker: plot only on bar close  
+- Integrated SMA / EMA / VWAP plotting (please hide via Style panel)  
 
 ---
 
@@ -48,7 +49,7 @@ This TradingView indicator detects potential **LONG** (`L`, `L+`) and **RISK** (
 
 ---
 
-### Inspired by
+## Inspired by
 - 通达信 "破坎红 (买入)" 与 "过坎黑 (风险)" 组合指标
 
 ---

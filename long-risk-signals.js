@@ -4,16 +4,16 @@
 // @version=6
 // -----------------------------------------------------------------------------
 //  LONG / RISK Signals with Adaptive MA Filter
+//  - Signals: L / L+ / R / R+
 //  - VWAP / Volume / MACD confirmations
 //  - Separate K–D minimum spread for L/L+ vs R/R+
 //  - Optional ATR / ADX market-condition filters (classic lengths)
 //  - Optional MA Slope Filter for L+ / R+
 //  - Optional extra R labels via “Near-High + RSI Bearish” combo
 //  - Plot labels only on confirmed bar close (anti-flicker)
-//  - Unified SMA / EMA / VWAP plotting (hide via Style panel)
-//  - Signals: L / L+ / R / R+
+//  - Integrated SMA / EMA / VWAP plotting (please hide via Style panel)
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.5 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.6 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
