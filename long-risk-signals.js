@@ -1,16 +1,19 @@
+// This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © Anthony C. https://x.com/anthonycxc
+
 // @version=6
 // -----------------------------------------------------------------------------
-//  LONG / RISK Signals with Adaptive MA Filter - v5.1.2
+//  LONG / RISK Signals with Adaptive MA Filter
 //  - VWAP / Volume / MACD confirmations
 //  - Separate K–D minimum spread for L/L+ vs R/R+
-//  - Optional ATR / ADX market-condition filters (classic lengths hard-coded)
+//  - Optional ATR / ADX market-condition filters (classic lengths)
 //  - Optional MA Slope Filter for L+ / R+
 //  - Optional extra R labels via “Near-High + RSI Bearish” combo
 //  - Plot labels only on confirmed bar close (anti-flicker)
+//  - Unified SMA / EMA / VWAP plotting (hide via Style panel)
 //  - Signals: L / L+ / R / R+
-//  Author: Anthony C.
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals - v5.1.2 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.5 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
@@ -86,15 +89,9 @@ volOK  = volume > volAvg * volMultiplier
 
 // === VWAP (intraday only) ===
 src       = hlc3
-vwap      = ta.vwap(src)
-aboveVWAP = not useVwap or not isIntraday or (close >= vwap)
-belowVWAP = not useVwap or not isIntraday or (close <= vwap)
-
-// === Reference MAs ===
-ma20  = ta.sma(close, 20)
-ma60  = ta.sma(close, 60)
-ma100 = ta.sma(close, 100)
-ma200 = ta.sma(close, 200)
+vwapFilt  = ta.vwap(src)  // used for filtering (not display)
+aboveVWAP = not useVwap or not isIntraday or (close >= vwapFilt)
+belowVWAP = not useVwap or not isIntraday or (close <= vwapFilt)
 
 // === Market states ===
 priceAboveMA = close > maSel
@@ -112,7 +109,7 @@ breakUpSignal   = k_cross_up or d_cross_up
 
 prevBearishBar  = (close[1] <= open[1]) and (close[1] <= close[2])
 
-// === Base / Enhanced Signals with Optional Delay (same as v4.7) ===
+// === Base / Enhanced Signals with Optional Delay ===
 L_base = if useSignalDelay
     (((breakDownSignal[2] and bullishBar[1]) or (breakDownSignal[2] and prevBearishBar[1] and bullishBar[1])) and priceAboveMA[1])
 else
@@ -124,14 +121,13 @@ else
     (breakUpSignal[1] and bearishBar and priceAboveMA)
 
 // === EXTRA R (adds signals; does NOT filter others) ===
-// Near-High within tolerance AND bearish RSI divergence vs topLookback bars ago
 recentHigh     = ta.highest(high, topLookback)
 nearHigh       = high >= recentHigh * (1 - topTolerancePct / 100.0)
 rsiNow         = ta.rsi(close, rsiLen)
 rsiPast        = rsiNow[topLookback]
 histHigh       = high[topLookback]                         // may be na on early bars
-priceHigherHi  = not na(histHigh) and high > histHigh      // <- NA-safety added
-rsiLowerHi     = rsiNow < nz(rsiPast, rsiNow)              // already NA-protected
+priceHigherHi  = not na(histHigh) and high > histHigh      // NA-safe
+rsiLowerHi     = rsiNow < nz(rsiPast, rsiNow)              // NA-protected
 rsiAbove60     = rsiNow > 60
 extraR_combo   = enableTopRSICombo and nearHigh and bearishBar and priceAboveMA and priceHigherHi and rsiLowerHi and rsiAbove60
 
@@ -171,7 +167,7 @@ marketOK = atrOK and adxOK
 // === Apply market filters ===
 applyFilters(sig) => applyToBaseSignals ? (sig and marketOK) : sig
 
-// L+/R+ with filters; slope filter still only affects enhanced signals
+// L+ / R+ with filters; slope filter still only affects enhanced signals
 L_plus      = applyFilters(L_base and aboveVWAP and volOK and bullMACD and (not enableSlopeFilter or maSlopeUp))
 R_plus      = applyFilters(R_base and belowVWAP and volOK and bearMACD and (not enableSlopeFilter or maSlopeDown))
 
@@ -179,18 +175,44 @@ R_plus      = applyFilters(R_base and belowVWAP and volOK and bearMACD and (not 
 L_baseFinal = applyToBaseSignals ? (L_base and marketOK) : L_base
 R_baseFinal = applyToBaseSignals ? (R_base and marketOK) : R_base
 
-// === MA display (UI) ===
-groupPlot  = "MA Display"
-showMA20   = input.bool(true,  "Show MA20",  group=groupPlot)
-showMA60   = input.bool(true,  "Show MA60",  group=groupPlot)
-showMA100  = input.bool(false, "Show MA100 (default off)", group=groupPlot)
-showMA200  = input.bool(true,  "Show MA200", group=groupPlot)
+// === SMA / EMA / VWAP ===
+// SMA
+sma20  = ta.sma(close, 20)
+sma30  = ta.sma(close, 30)
+sma60  = ta.sma(close, 60)
+sma120 = ta.sma(close, 120)
+sma200 = ta.sma(close, 200)
 
-// === Plot MAs ===
-plot(showMA20  ? ma20  : na, title="MA20",  color=color.new(#F8BBD0, 0), linewidth=1)
-plot(showMA60  ? ma60  : na, title="MA60",  color=color.new(#FFE0B2, 0), linewidth=1)
-plot(showMA100 ? ma100 : na, title="MA100", color=color.new(#C8E6C9, 0), linewidth=1)
-plot(showMA200 ? ma200 : na, title="MA200", color=color.new(#E1BEE7, 0), linewidth=1)
+// EMA
+ema3   = ta.ema(close, 3)
+ema8   = ta.ema(close, 8)
+ema20  = ta.ema(close, 20)
+ema30  = ta.ema(close, 30)
+ema60  = ta.ema(close, 60)
+ema120 = ta.ema(close, 120)
+ema200 = ta.ema(close, 200)
+
+// VWAP
+vwapLine = ta.vwap
+
+// Plot SMA
+plot(sma20,  title="SMA 20",  color=color.teal)
+plot(sma30,  title="SMA 30",  color=color.blue)
+plot(sma60,  title="SMA 60",  color=color.navy)
+plot(sma120, title="SMA 120", color=color.purple)
+plot(sma200, title="SMA 200", color=color.red)
+
+// Plot EMA
+plot(ema3,   title="EMA 3",   color=color.lime)
+plot(ema8,   title="EMA 8",   color=color.aqua)
+plot(ema20,  title="EMA 20",  color=color.rgb(80,180,180))
+plot(ema30,  title="EMA 30",  color=color.rgb(60,150,150))
+plot(ema60,  title="EMA 60",  color=color.rgb(40,120,120))
+plot(ema120, title="EMA 120", color=color.rgb(120,80,160))
+plot(ema200, title="EMA 200", color=color.rgb(20,70,70))
+
+// Plot VWAP
+plot(vwapLine, title="VWAP", color=color.yellow, linewidth=2)
 
 // === Labels (confirmed close only) ===
 canL    = barstate.isconfirmed and L_baseFinal and not L_plus
