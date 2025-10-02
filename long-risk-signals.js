@@ -13,7 +13,7 @@
 //  - Plot labels only on confirmed bar close (anti-flicker)
 //  - Integrated SMA / EMA / VWAP plotting (please hide via Style panel)
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.8 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.9 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
@@ -185,21 +185,21 @@ ema200 = ta.ema(close, 200)
 vwapLine = ta.vwap
 
 // === Plot SMA and EMA ===
+// === SMA ===
+plot(sma20,  title="SMA 20",  color=color.rgb(100,0,150))
+plot(sma30,  title="SMA 30",  color=color.rgb(130,80,190))
+plot(sma60,  title="SMA 60",  color=color.rgb(60,110,255))
+plot(sma120, title="SMA 120", color=color.rgb(80,180,200))
+plot(sma200, title="SMA 200", color=color.rgb(140,220,230))
 // EMA 3 & EMA 10
 plot(ema3,  title="EMA 3",  color=color.new(color.rgb(136,200,136),20), linewidth=2, style=plot.style_line, linestyle=plot.linestyle_dotted)
 plot(ema10, title="EMA 10", color=color.new(color.rgb(60,140,60),10), linewidth=2, style=plot.style_line, linestyle=plot.linestyle_dotted)
-// === SMA ===
-plot(sma20,  title="SMA 20",  color=color.rgb(140,220,230))
-plot(sma30,  title="SMA 30",  color=color.rgb(80,180,200))
-plot(sma60,  title="SMA 60",  color=color.rgb(60,110,255))
-plot(sma120, title="SMA 120", color=color.rgb(130,80,190))
-plot(sma200, title="SMA 200", color=color.rgb(100,0,150))
 // === EMA ===
-plot(ema20,  title="EMA 20",  color=color.new(color.rgb(140,220,230),30))
-plot(ema30,  title="EMA 30",  color=color.new(color.rgb(80,180,200),30))
+plot(ema20,  title="EMA 20",  color=color.new(color.rgb(100,0,150),30))
+plot(ema30,  title="EMA 30",  color=color.new(color.rgb(130,80,190),30))
 plot(ema60,  title="EMA 60",  color=color.new(color.rgb(60,110,255),30))
-plot(ema120, title="EMA 120", color=color.new(color.rgb(130,80,190),30))
-plot(ema200, title="EMA 200", color=color.new(color.rgb(100,0,150),30))
+plot(ema120, title="EMA 120", color=color.new(color.rgb(80,180,200),30))
+plot(ema200, title="EMA 200", color=color.new(color.rgb(140,220,230),30))
 
 // === Plot VWAP ===
 plot(vwapLine, title="VWAP", color=color.yellow, linewidth=2)
