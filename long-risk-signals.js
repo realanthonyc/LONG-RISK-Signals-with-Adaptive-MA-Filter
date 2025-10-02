@@ -13,7 +13,7 @@
 //  - Plot labels only on confirmed bar close (anti-flicker)
 //  - Integrated SMA / EMA / VWAP plotting (please hide via Style panel)
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.7 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.1.8 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
@@ -22,9 +22,9 @@ n_len      = input.int(9,  "KDJ Period (N)",   minval=1, group=groupKDJ)
 m1_len     = input.int(3,  "K Smoothing (M1)", minval=1, group=groupKDJ)
 m2_len     = input.int(3,  "D Smoothing (M2)", minval=1, group=groupKDJ)
 
-// Split K–D minimum spread (abs(K-D)) to control signal quality
+// Split K–D minimum spread to control signal quality
 kdMinSpreadL = input.float(2.0, "K-D Min Spread for L/L+ (higher = stricter)", minval=0.0, step=0.1, group=groupKDJ)
-kdMinSpreadR = input.float(6.0, "K-D Min Spread for R/R+ (higher = stricter)", minval=0.0, step=0.1, group=groupKDJ)
+kdMinSpreadR = input.float(5.5, "K-D Min Spread for R/R+ (higher = stricter)", minval=0.0, step=0.1, group=groupKDJ)
 
 // MACD
 groupMACD  = "MACD Parameters"
@@ -46,14 +46,14 @@ groupTrend = "Trend Filter"
 enableSlopeFilter = input.bool(true, "Enable MA Slope Filter (reduce false signals in sideways/ranging markets)", group=groupTrend)
 slopeLen = input.int(2, "MA Slope Lookback in bars (default = 2, higher = stricter, lower = more sensitive)", minval=1, group=groupTrend)
 
-// Extra R via Near-High + RSI Bearish combo
+// Extra R via Near-High + RSI Bearish combo (adds signals; does NOT filter)
 groupRiskCombo    = "R EXTRA: Near-High + RSI Bearish Combo"
 enableTopRSICombo = input.bool(true,  "Enable 'Near-High + RSI Bearish' combo (adds extra R)", group=groupRiskCombo)
 topLookback       = input.int(14,    "Near-High Lookback (bars)", minval=5, maxval=200, group=groupRiskCombo)
 topTolerancePct   = input.float(0.10,"Near-High Tolerance (%)",   minval=0.05, maxval=2.0, step=0.05, group=groupRiskCombo)
 rsiLen            = input.int(21,    "RSI Length (for divergence)", minval=7, maxval=60, group=groupRiskCombo)
 
-// Market condition filters
+// Market condition filters (ATR/ADX)
 groupMkt          = "MARKET CONDITION FILTERS"
 enableATRFilter   = input.bool(true,  "Enable ATR Filter (volatility check)", group=groupMkt)
 atrMult           = input.float(0.8,  "ATR Threshold Multiplier", minval=0.1, step=0.1, group=groupMkt)
