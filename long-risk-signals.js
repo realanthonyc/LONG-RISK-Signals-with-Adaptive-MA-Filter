@@ -1,7 +1,7 @@
 // This Pine Script® code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
 // © Anthony C. https://x.com/anthonycxc
 
-// @version=6
+//@version=6
 // -----------------------------------------------------------------------------
 //  LONG / RISK Signals with Adaptive MA Filter
 //  - Signals: L / L+ / R / R+
@@ -14,7 +14,7 @@
 //  - Integrated SMA / EMA / VWAP plotting (hide via Style panel)
 //  - Option to auto-hide EMA 3 & EMA 10 above a minutes threshold
 // -----------------------------------------------------------------------------
-indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.2.0 -", overlay=true, max_labels_count=500)
+indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals - v5.2.2 -", overlay=true, max_labels_count=500)
 
 // === Inputs ===
 // KDJ
@@ -196,11 +196,11 @@ showFastEMAs = not enableHideFastEMAs or (timeframe.isintraday and timeframe.mul
 
 // === Plot SMA and EMA ===
 // SMAs
-plot(sma20,  title="SMA 20",  color=color.rgb(100,  0,150))
-plot(sma30,  title="SMA 30",  color=color.rgb(130, 80,190))
-plot(sma60,  title="SMA 60",  color=color.rgb( 60,110,255))
-plot(sma120, title="SMA 120", color=color.rgb( 80,180,200))
-plot(sma200, title="SMA 200", color=color.rgb(140,220,230))
+plot(sma20,  title="SMA 20",  color=color.new(color.rgb(100,  0,150),60))
+plot(sma30,  title="SMA 30",  color=color.new(color.rgb(130, 80,190),60))
+plot(sma60,  title="SMA 60",  color=color.new(color.rgb( 60,110,255),60))
+plot(sma120, title="SMA 120", color=color.new(color.rgb( 80,180,200),60))
+plot(sma200, title="SMA 200", color=color.new(color.rgb(140,220,230),60))
 
 // EMA 3 & 10 (only plotted when allowed)
 plot(showFastEMAs ? ema3  : na, title="EMA 3",
@@ -218,7 +218,7 @@ plot(ema120, title="EMA 120", color=color.new(color.rgb( 80,180,200),30))
 plot(ema200, title="EMA 200", color=color.new(color.rgb(140,220,230),30))
 
 // === Plot VWAP ===
-plot(vwapLine, title="VWAP", color=color.yellow, linewidth=2)
+plot(vwapLine, title="VWAP", color=color.new(color.yellow, 70), linewidth=2)
 
 // === Labels (confirmed close only) ===
 canL    = barstate.isconfirmed and L_baseFinal and not L_plus
