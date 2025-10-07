@@ -2,18 +2,19 @@
 // © Anthony C. https://x.com/anthonycxc
 
 //@version=6
-// -------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 //  LONG / RISK Signals with Adaptive MA Filter
 //  - Signals: L / L+ / R / R+
-//  - Uses adaptive MA internally for trend (not plotted)
-//  - Volume / MACD confirmations + Optional VWAP filter (intraday-aware)
+//  - VWAP / Volume / MACD confirmations
 //  - Separate K–D minimum spread for L/L+ vs R/R+
 //  - Optional ATR / ADX market-condition filters (classic lengths)
 //  - Optional MA Slope Filter for L+ / R+
 //  - Optional extra R labels via “Near-High + RSI Bearish” combo
 //  - Plot labels only on confirmed bar close (anti-flicker)
-//  v5.3.3
-// -------------------------------------------------------------------------
+//  - Integrated SMA / EMA / VWAP plotting (hide via Style panel)
+//  - Option to auto-hide EMA 3 & EMA 10 above a minutes threshold
+//  v5.2.3
+// -----------------------------------------------------------------------------
 indicator("LONG / RISK Signals with Adaptive MA Filter", shorttitle="LONG / RISK Signals", overlay=true, max_labels_count=500)
 
 // === Inputs ===
@@ -37,18 +38,15 @@ sigLen     = input.int(9,  "MACD Signal Length", minval=1, group=groupMACD)
 groupVOL   = "Volume Filter"
 volMultiplier = input.float(0.85, "Volume Multiplier (try 1.0 or 1.5 for stricter signals)", minval=0.1, step=0.05, group=groupVOL)
 
-// Signal options
-groupSig   = "Signal Options"
-useSignalDelay = input.bool(false, "Enable Signal Confirmation Delay (2-bar confirmation)", group=groupSig)
+// VWAP
+groupVWAP  = "VWAP Filter"
+useVwap        = input.bool(true,  "Enable VWAP Filter", group=groupVWAP)
+useSignalDelay = input.bool(false, "Enable Signal Confirmation Delay (2-bar confirmation)", group=groupVWAP)
 
 // Trend Filter (MA Slope)
 groupTrend = "Trend Filter"
 enableSlopeFilter = input.bool(true, "Enable MA Slope Filter (reduce false signals in sideways/ranging markets)", group=groupTrend)
 slopeLen = input.int(2, "MA Slope Lookback in bars (default = 2, higher = stricter, lower = more sensitive)", minval=1, group=groupTrend)
-
-// VWAP filter
-groupVWAP  = "VWAP Filter"
-useVwap    = input.bool(true, "Enable VWAP Filter (intraday only)", group=groupVWAP)
 
 // Extra R via Near-High + RSI Bearish combo (adds signals; does NOT filter)
 groupRiskCombo    = "R EXTRA: Near-High + RSI Bearish Combo"
@@ -65,6 +63,11 @@ enableADXFilter   = input.bool(false, "Enable ADX Filter (trend strength)",   gr
 adxThreshold      = input.float(20,   "ADX Threshold (trend strength level)", minval=5, step=0.5, group=groupMkt)
 applyToBaseSignals= input.bool(false, "Apply filters also to base L / R (default = only L+ / R+)", group=groupMkt)
 
+// Display options
+groupDisp        = "Display Options"
+enableHideFastEMAs = input.bool(true, "Enable hiding of EMA 3 & EMA 10 above timeframe", group=groupDisp)
+hideAboveMinutes   = input.int(15, "Hide when chart timeframe (minutes) is greater than", minval=1, group=groupDisp)
+
 // === KDJ Calculation ===
 lowestLow   = ta.lowest(low, n_len)
 highestHigh = ta.highest(high, n_len)
@@ -76,7 +79,7 @@ kdSpread    = math.abs(k_line - d_line)
 // === MACD Calculation ===
 [macd_line, macd_signal, macd_hist] = ta.macd(close, fastLen, slowLen, sigLen)
 
-// === Adaptive MA Filter by Timeframe (internal only; not plotted) ===
+// === Adaptive MA Filter by Timeframe ===
 isIntraday     = timeframe.isintraday
 mult           = timeframe.multiplier
 is15mOrLess    = isIntraday and mult <= 15
@@ -91,11 +94,11 @@ volLen = is15mOrLess ? 5 : (isAbove15mTo1D ? 10 : (is1DTo1W ? 20 : 50))
 volAvg = ta.sma(volume, volLen)
 volOK  = volume > volAvg * volMultiplier
 
-// === VWAP (intraday only; as filter, not plotted) ===
+// === VWAP (intraday only) ===
 src       = hlc3
-vwapVal   = ta.vwap(src)
-aboveVWAP = not useVwap or not isIntraday or (close >= vwapVal)
-belowVWAP = not useVwap or not isIntraday or (close <= vwapVal)
+vwapFilt  = ta.vwap(src)
+aboveVWAP = not useVwap or not isIntraday or (close >= vwapFilt)
+belowVWAP = not useVwap or not isIntraday or (close <= vwapFilt)
 
 // === Market states ===
 priceAboveMA = close > maSel
@@ -172,6 +175,51 @@ L_plus      = applyFilters(L_base and aboveVWAP and volOK and bullMACD and (not 
 R_plus      = applyFilters(R_base and belowVWAP and volOK and bearMACD and (not enableSlopeFilter or maSlopeDown))
 L_baseFinal = applyToBaseSignals ? (L_base and marketOK) : L_base
 R_baseFinal = applyToBaseSignals ? (R_base and marketOK) : R_base
+
+// === SMA / EMA / VWAP ===
+sma20  = ta.sma(close, 20)
+sma30  = ta.sma(close, 30)
+sma60  = ta.sma(close, 60)
+sma120 = ta.sma(close, 120)
+sma200 = ta.sma(close, 200)
+ema3   = ta.ema(close, 3)
+ema10  = ta.ema(close, 10)
+ema20  = ta.ema(close, 20)
+ema30  = ta.ema(close, 30)
+ema60  = ta.ema(close, 60)
+ema120 = ta.ema(close, 120)
+ema200 = ta.ema(close, 200)
+vwapLine = ta.vwap
+
+// === Fast EMA visibility control ===
+// Show Fast EMAs (EMA 3 & 10) only when: auto-hide disabled, OR chart is intraday AND multiplier
+showFastEMAs = not enableHideFastEMAs or (timeframe.isintraday and timeframe.multiplier <= hideAboveMinutes)
+
+// === Plot SMA and EMA ===
+// SMAs
+plot(sma20,  title="SMA 20",  color=color.new(color.rgb(100,  0,150),60))
+plot(sma30,  title="SMA 30",  color=color.new(color.rgb(130, 80,190),60))
+plot(sma60,  title="SMA 60",  color=color.new(color.rgb( 60,110,255),60))
+plot(sma120, title="SMA 120", color=color.new(color.rgb( 80,180,200),60))
+plot(sma200, title="SMA 200", color=color.new(color.rgb(140,220,230),60))
+
+// EMA 3 & 10 (only plotted when allowed)
+plot(showFastEMAs ? ema3  : na, title="EMA 3",
+     color=color.new(color.rgb(136,200,136),20), linewidth=2,
+     style=plot.style_line, linestyle=plot.linestyle_dotted)
+plot(showFastEMAs ? ema10 : na, title="EMA 10",
+     color=color.new(color.rgb( 60,140, 60),10), linewidth=2,
+     style=plot.style_line, linestyle=plot.linestyle_dotted)
+
+// Other EMAs
+plot(ema20,  title="EMA 20",  color=color.new(color.rgb(100,  0,150),30))
+plot(ema30,  title="EMA 30",  color=color.new(color.rgb(130, 80,190),30))
+plot(ema60,  title="EMA 60",  color=color.new(color.rgb( 60,110,255),30))
+plot(ema120, title="EMA 120", color=color.new(color.rgb( 80,180,200),30))
+plot(ema200, title="EMA 200", color=color.new(color.rgb(140,220,230),30))
+
+// === Plot VWAP ===
+plot(vwapLine, title="VWAP", color=color.new(color.yellow, 70), linewidth=2)
 
 // === Labels (confirmed close only) ===
 canL    = barstate.isconfirmed and L_baseFinal and not L_plus
