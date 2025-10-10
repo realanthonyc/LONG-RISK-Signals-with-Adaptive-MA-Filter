@@ -18,7 +18,6 @@ This TradingView indicator detects potential **LONG** (`L`, `L+`) and **RISK** (
 - Optional MA Slope Filter for L+ / R+  
 - Optional extra R via *Near-High + RSI Bearish* combo  
 - Anti-flicker: plot only on bar close  
-- Integrated SMA / EMA / VWAP plotting (please hide via Style panel)  
 
 ---
 
